@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recapping the Role - Interactive Layout</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+  /* Wrapper scoping to prevent Articulate Rise conflicts */
+  .cc-module-wrapper {
+    font-family: 'Poppins', sans-serif;
+    color: #1e293b;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 16px;
+    position: relative;
+    line-height: 1.6;
+  }
+
+  .cc-module-wrapper *, .cc-module-wrapper *::before, .cc-module-wrapper *::after {
+    box-sizing: inherit;
+  }
+
+  /* Horizontal-First Composition: Editorial Split Layout */
+  .cc-split-layout {
+    display: flex;
+    flex-direction: row;
+    gap: 32px;
+    align-items: stretch;
+  }
+
+  /* Structural Panels */
+  .cc-panel {
+    flex: 1;
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cc-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+  }
+
+  .cc-panel.panel-left::before {
+    background: linear-gradient(90deg, #317eff, #60a5fa);
+  }
+
+  .cc-panel.panel-right::before {
+    background: linear-gradient(90deg, #8b5cf6, #c084fc);
+  }
+
+  .cc-section-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 24px 0;
+    letter-spacing: -0.5px;
+  }
+
+  /* Interactive Elements Base */
+  .cc-interactive-item {
+    display: flex;
+    background: #f8fafc;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid transparent;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cc-interactive-item i {
+    color: #64748b;
+    transition: all 0.4s ease;
+  }
+
+  .cc-interactive-item span {
+    font-size: 16px;
+    font-weight: 500;
+    color: #475569;
+    transition: all 0.4s ease;
+  }
+
+  /* Left Panel: Ribbon List */
+  .cc-ribbon-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex-grow: 1;
+  }
+
+  .cc-ribbon-list .cc-interactive-item {
+    align-items: center;
+    padding: 16px 20px;
+  }
+
+  .cc-ribbon-list .cc-interactive-item i {
+    font-size: 24px;
+    margin-right: 16px;
+    width: 24px;
+    text-align: center;
+  }
+
+  /* Right Panel: Bento Grid */
+  .cc-bento-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    flex-grow: 1;
+  }
+
+  .cc-bento-grid .cc-interactive-item {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px;
+    height: 100%;
+  }
+
+  .cc-bento-grid .cc-interactive-item i {
+    font-size: 32px;
+    margin-bottom: 16px;
+  }
+
+  /* Active/Hover States */
+
+  /* Turing Blue Theme (Left) */
+  .theme-blue.is-active {
+    background: #ffffff;
+    border-color: rgba(49, 126, 255, 0.3);
+    box-shadow: 0 12px 24px rgba(49, 126, 255, 0.08);
+    transform: translateX(8px);
+  }
+  .theme-blue.is-active i {
+    color: #317eff;
+    transform: scale(1.1);
+  }
+  .theme-blue.is-active span {
+    color: #0f172a;
+    font-weight: 600;
+  }
+
+  /* Premium Purple Theme (Right) */
+  .theme-purple.is-active {
+    background: #ffffff;
+    border-color: rgba(139, 92, 246, 0.3);
+    box-shadow: 0 12px 24px rgba(139, 92, 246, 0.08);
+    transform: translateY(-6px) scale(1.02);
+  }
+  .theme-purple.is-active i {
+    color: #8b5cf6;
+    transform: scale(1.1);
+  }
+  .theme-purple.is-active span {
+    color: #0f172a;
+    font-weight: 600;
+  }
+
+  /* Subtle Side Accents on Active */
+  .cc-interactive-item::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 0%;
+    border-radius: 4px;
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+
+  .theme-blue::after { background: #317eff; }
+  .theme-purple::after { background: #8b5cf6; }
+
+  .cc-interactive-item.is-active::after {
+    height: 60%;
+    opacity: 1;
+  }
+
+  /* Mobile Responsiveness */
+  @media (max-width: 900px) {
+    .cc-split-layout {
+      flex-direction: column;
+    }
+    .cc-panel {
+      min-width: 100%;
+    }
+    .theme-blue.is-active {
+      transform: translateX(4px);
+    }
+  }
+
+  @media (max-width: 600px) {
+    .cc-bento-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Accessibility Preferences */
+  @media (prefers-reduced-motion: reduce) {
+    .cc-interactive-item,
+    .cc-interactive-item i,
+    .cc-interactive-item span,
+    .cc-interactive-item::after {
+      transition: none;
+      transform: none !important;
+    }
+  }
+</style>
+<style>
+/* ===== SLIDE NAV ===== */
+.slide-nav{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;z-index:9999;font-family:'Poppins',system-ui,sans-serif}
+.slide-nav .nav-btn{display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:14px;background:#111;color:#fff;text-decoration:none;transition:all .2s ease;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.slide-nav .nav-btn:hover{background:#333;transform:scale(1.06)}
+.slide-nav .nav-btn svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.slide-nav .nav-disabled{opacity:.25;pointer-events:none}
+.slide-nav .nav-label{font-size:13px;font-weight:500;color:#5f6368;background:rgba(255,255,255,.9);backdrop-filter:blur(10px);padding:8px 14px;border-radius:999px;border:1px solid rgba(0,0,0,.06);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+
+</style>
+</head>
+<body>
+
+<div class="cc-module-wrapper" id="ccRecapBlock">
+  <div class="cc-split-layout">
+    
+    <div class="cc-panel panel-left">
+      <h2 class="cc-section-title">Recapping the role</h2>
+      <div class="cc-ribbon-list" role="list">
+        
+        <div class="cc-interactive-item theme-blue" role="listitem" tabindex="0">
+          <i class="material-icons">person</i>
+          <span>The AI is the student</span>
+        </div>
+        
+        <div class="cc-interactive-item theme-blue" role="listitem" tabindex="0">
+          <i class="material-icons">help_center</i>
+          <span>The task is the question</span>
+        </div>
+        
+        <div class="cc-interactive-item theme-blue" role="listitem" tabindex="0">
+          <i class="material-icons">fact_check</i>
+          <span>The rubric is the answer key</span>
+        </div>
+        
+        <div class="cc-interactive-item theme-blue" role="listitem" tabindex="0">
+          <i class="material-icons">school</i>
+          <span>You are the teacher</span>
+        </div>
+        
+        <div class="cc-interactive-item theme-blue" role="listitem" tabindex="0">
+          <i class="material-icons">assignment_ind</i>
+          <span>Your job is to grade fairly and consistently.</span>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="cc-panel panel-right">
+      <h2 class="cc-section-title">In real projects:</h2>
+      <div class="cc-bento-grid" role="list">
+        
+        <div class="cc-interactive-item theme-purple" role="listitem" tabindex="0">
+          <i class="material-icons">error_outline</i>
+          <span>Some code will be close but incorrect</span>
+        </div>
+        
+        <div class="cc-interactive-item theme-purple is-active" role="listitem" tabindex="0">
+          <i class="material-icons">campaign</i>
+          <span>Some responses will sound confident but fail</span>
+        </div>
+        
+        <div class="cc-interactive-item theme-purple" role="listitem" tabindex="0">
+          <i class="material-icons">balance</i>
+          <span>Your judgment must stay consistent</span>
+        </div>
+        
+        <div class="cc-interactive-item theme-purple" role="listitem" tabindex="0">
+          <i class="material-icons">insights</i>
+          <span>Reliable evaluation helps teams improve models.</span>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  (function() {
+    const block = document.getElementById('ccRecapBlock');
+    if (!block) return;
+
+    const items = Array.from(block.querySelectorAll('.cc-interactive-item'));
+    let activeIndex = 0;
+    let isUserEngaged = false; 
+    let autoPlayInterval;
+    const CYCLE_TIME = 2500; // 2.5 seconds per item to maintain a lively feel
+
+    // Function to set a specific item as active
+    function setActiveItem(index, locked = false) {
+      items.forEach((item, i) => {
+        if (i === index) {
+          item.classList.add('is-active');
+        } else {
+          item.classList.remove('is-active');
+        }
+      });
+      if (locked) {
+        isUserEngaged = true;
+        stopAutoPlay();
+      }
+    }
+
+    // Auto-play logic simulation
+    function startAutoPlay() {
+      if (isUserEngaged) return;
+      
+      setActiveItem(activeIndex);
+      
+      autoPlayInterval = setInterval(() => {
+        if (!isUserEngaged) {
+          activeIndex = (activeIndex + 1) % items.length;
+          setActiveItem(activeIndex);
+        }
+      }, CYCLE_TIME);
+    }
+
+    function stopAutoPlay() {
+      clearInterval(autoPlayInterval);
+    }
+
+    // Attach Event Listeners for Interaction Model
+    items.forEach((item, index) => {
+      // Hover overrides auto-play and previews state
+      item.addEventListener('mouseenter', () => {
+        if (!isUserEngaged) {
+          stopAutoPlay();
+          setActiveItem(index);
+        }
+      });
+
+      // Leaving hover resumes auto-play from the left-off point
+      item.addEventListener('mouseleave', () => {
+        if (!isUserEngaged) {
+          activeIndex = index;
+          startAutoPlay();
+        }
+      });
+
+      // Click / Tap locks the state and stops auto-play completely
+      item.addEventListener('click', () => {
+        setActiveItem(index, true);
+      });
+
+      // Keyboard accessibility support
+      item.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          setActiveItem(index, true);
+        }
+      });
+    });
+
+    // Start passive engagement after a brief delay
+    setTimeout(startAutoPlay, 600);
+
+  })();
+</script>
+
+
+
+<div style="height:96px" aria-hidden="true"></div>
+<div class="slide-nav">
+  <a href="slide-07.html" class="nav-btn" title="Previous"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></a>
+  <span class="nav-label">8 / 9</span>
+  <a href="slide-09.html" class="nav-btn" title="Next"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
+</div>
+
+</body></html>

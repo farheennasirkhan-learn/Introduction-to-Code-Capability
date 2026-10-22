@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Capability UI Block</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+  /* Scope everything inside the wrapper to prevent Rise conflicts */
+  .cc-module-wrapper {
+    font-family: 'Poppins', sans-serif;
+    color: #1e293b;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+    /* Light mode only, no outer background to blend with Rise */
+    position: relative;
+    line-height: 1.6;
+  }
+
+  .cc-module-wrapper *, .cc-module-wrapper *::before, .cc-module-wrapper *::after {
+    box-sizing: inherit;
+  }
+
+  /* Structural Layout: Editorial Split */
+  .cc-layout-container {
+    display: flex;
+    flex-direction: row;
+    gap: 32px;
+    align-items: stretch;
+  }
+
+  /* Left Side: Context Panel */
+  .cc-context-panel {
+    flex: 1;
+    min-width: 300px;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-right: 16px;
+  }
+
+  .cc-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 16px 0;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+  }
+
+  .cc-description {
+    font-size: 18px;
+    font-weight: 400;
+    color: #475569;
+    margin: 0 0 24px 0;
+  }
+
+  .cc-prompt {
+    font-size: 16px;
+    font-weight: 600;
+    color: #317eff; /* Turing Blue emphasis */
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .cc-prompt i {
+    font-size: 20px;
+  }
+
+  /* Right Side: Interactive Bento Grid */
+  .cc-grid-panel {
+    flex: 2;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  /* Interactive Cards */
+  .cc-role-card {
+    position: relative;
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 20px;
+    padding: 28px 24px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+    z-index: 1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    /* Subtle idle breathing animation */
+    animation: cc-breathe 4s ease-in-out infinite;
+  }
+
+  /* Stagger animations for a more natural feel */
+  .cc-role-card:nth-child(1) { animation-delay: 0s; }
+  .cc-role-card:nth-child(2) { animation-delay: 1s; }
+  .cc-role-card:nth-child(3) { animation-delay: 2s; }
+  .cc-role-card:nth-child(4) { animation-delay: 3s; }
+
+  @keyframes cc-breathe {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+
+  /* Expanded Premium Palette Variables */
+  .cc-role-card.theme-teacher { --accent: #317eff; --accent-light: rgba(49, 126, 255, 0.08); } /* Turing Blue */
+  .cc-role-card.theme-student { --accent: #8b5cf6; --accent-light: rgba(139, 92, 246, 0.08); } /* Premium Purple */
+  .cc-role-card.theme-question { --accent: #0ea5e9; --accent-light: rgba(14, 165, 233, 0.08); } /* Light Blue */
+  .cc-role-card.theme-answer { --accent: #10b981; --accent-light: rgba(16, 185, 129, 0.08); } /* Refined Green */
+
+  /* Luminous background glow */
+  .cc-role-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--accent-light) 0%, rgba(255,255,255,0) 100%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: -1;
+  }
+
+  /* Active/Hover State */
+  .cc-role-card.is-active {
+    transform: translateY(-6px) scale(1.02);
+    border-color: var(--accent);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.06), 0 0 0 1px var(--accent);
+    animation: none; /* Stop breathing when active */
+  }
+
+  .cc-role-card.is-active::before {
+    opacity: 1;
+  }
+
+  .cc-card-header {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  .cc-icon-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #f8fafc;
+    color: #64748b;
+    margin-right: 16px;
+    transition: all 0.4s ease;
+  }
+
+  .cc-role-card.is-active .cc-icon-container {
+    background: var(--accent);
+    color: #ffffff;
+    box-shadow: 0 8px 16px var(--accent-light);
+  }
+
+  .cc-card-title-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .cc-card-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    transition: color 0.3s ease;
+  }
+
+  .cc-role-card.is-active .cc-card-title {
+    color: var(--accent);
+  }
+
+  .cc-card-subtitle {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    margin: 2px 0 0 0;
+  }
+
+  .cc-card-body {
+    font-size: 16px;
+    font-weight: 400;
+    color: #475569;
+    margin: 0;
+    opacity: 0.8;
+    transition: opacity 0.4s ease;
+  }
+
+  .cc-role-card.is-active .cc-card-body {
+    opacity: 1;
+    color: #1e293b;
+  }
+
+  /* Interaction Hint */
+  .cc-interaction-hint {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    font-size: 18px;
+    color: var(--accent);
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.3s ease;
+  }
+
+  .cc-role-card.is-active .cc-interaction-hint {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Mobile Responsiveness */
+  @media (max-width: 850px) {
+    .cc-layout-container {
+      flex-direction: column;
+    }
+    
+    .cc-context-panel {
+      max-width: 100%;
+      text-align: center;
+      padding-right: 0;
+      margin-bottom: 8px;
+    }
+
+    .cc-prompt {
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .cc-grid-panel {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Accessibility Preferences */
+  @media (prefers-reduced-motion: reduce) {
+    .cc-role-card,
+    .cc-role-card.is-active,
+    .cc-icon-container,
+    .cc-interaction-hint {
+      transition: none;
+      animation: none;
+      transform: none !important;
+    }
+  }
+</style>
+<style>
+/* ===== SLIDE NAV ===== */
+.slide-nav{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;z-index:9999;font-family:'Poppins',system-ui,sans-serif}
+.slide-nav .nav-btn{display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:14px;background:#111;color:#fff;text-decoration:none;transition:all .2s ease;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.slide-nav .nav-btn:hover{background:#333;transform:scale(1.06)}
+.slide-nav .nav-btn svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.slide-nav .nav-disabled{opacity:.25;pointer-events:none}
+.slide-nav .nav-label{font-size:13px;font-weight:500;color:#5f6368;background:rgba(255,255,255,.9);backdrop-filter:blur(10px);padding:8px 14px;border-radius:999px;border:1px solid rgba(0,0,0,.06);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+
+</style>
+</head>
+<body>
+
+<div class="cc-module-wrapper" id="ccCodeCapabilityBlock">
+  <div class="cc-layout-container">
+    
+    <div class="cc-context-panel">
+      <h2 class="cc-title">What Is the&nbsp;Code Capability?</h2>
+      <p class="cc-description">The Code Capability focuses on evaluating AI-generated code.</p>
+      <p class="cc-prompt">
+        <i class="material-icons">psychology</i>
+        Think of your role as a Teacher:
+      </p>
+    </div>
+
+    <div class="cc-grid-panel" role="list">
+      
+      <div class="cc-role-card theme-teacher" role="listitem" tabindex="0">
+        <div class="cc-card-header">
+          <div class="cc-icon-container">
+            <i class="material-icons">school</i>
+          </div>
+          <div class="cc-card-title-group">
+            <h3 class="cc-card-title">Teacher</h3>
+            <p class="cc-card-subtitle">Your Job</p>
+          </div>
+        </div>
+        <p class="cc-card-body">You are the teacher. Your job is to check whether the student’s code follows the rules.</p>
+        <i class="material-icons cc-interaction-hint">arrow_forward</i>
+      </div>
+
+      <div class="cc-role-card theme-student is-active" role="listitem" tabindex="0">
+        <div class="cc-card-header">
+          <div class="cc-icon-container">
+            <i class="material-icons">person</i>
+          </div>
+          <div class="cc-card-title-group">
+            <h3 class="cc-card-title">Student</h3>
+            <p class="cc-card-subtitle">The AI Model</p>
+          </div>
+        </div>
+        <p class="cc-card-body">The AI model is the student producing the work to be reviewed.</p>
+        <i class="material-icons cc-interaction-hint">arrow_forward</i>
+      </div>
+
+      <div class="cc-role-card theme-question" role="listitem" tabindex="0">
+        <div class="cc-card-header">
+          <div class="cc-icon-container">
+            <i class="material-icons">code</i>
+          </div>
+          <div class="cc-card-title-group">
+            <h3 class="cc-card-title">Question</h3>
+            <p class="cc-card-subtitle">Coding Task</p>
+          </div>
+        </div>
+        <p class="cc-card-body">The coding task is the question which the Student answers.</p>
+        <i class="material-icons cc-interaction-hint">arrow_forward</i>
+      </div>
+
+      <div class="cc-role-card theme-answer" role="listitem" tabindex="0">
+        <div class="cc-card-header">
+          <div class="cc-icon-container">
+            <i class="material-icons">fact_check</i>
+          </div>
+          <div class="cc-card-title-group">
+            <h3 class="cc-card-title">Answer</h3>
+            <p class="cc-card-subtitle">Rubric</p>
+          </div>
+        </div>
+        <p class="cc-card-body">The rubric is the answer key and your Source of Truth. Every evaluation decision should be based on the rubric.</p>
+        <i class="material-icons cc-interaction-hint">arrow_forward</i>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const block = document.getElementById('ccCodeCapabilityBlock');
+    if (!block) return;
+
+    const cards = Array.from(block.querySelectorAll('.cc-role-card'));
+    let activeIndex = 0;
+    let isUserEngaged = false; 
+    let autoPlayInterval;
+    const CYCLE_TIME = 3500; // 3.5 seconds per card
+
+    // Function to set a specific card as active
+    function setActiveCard(index, locked = false) {
+      cards.forEach((card, i) => {
+        if (i === index) {
+          card.classList.add('is-active');
+        } else {
+          card.classList.remove('is-active');
+        }
+      });
+      if (locked) {
+        isUserEngaged = true;
+        stopAutoPlay();
+      }
+    }
+
+    // Auto-play logic
+    function startAutoPlay() {
+      if (isUserEngaged) return;
+      
+      // Initial activation
+      setActiveCard(activeIndex);
+      
+      autoPlayInterval = setInterval(() => {
+        if (!isUserEngaged) {
+          activeIndex = (activeIndex + 1) % cards.length;
+          setActiveCard(activeIndex);
+        }
+      }, CYCLE_TIME);
+    }
+
+    function stopAutoPlay() {
+      clearInterval(autoPlayInterval);
+    }
+
+    // Attach Event Listeners
+    cards.forEach((card, index) => {
+      // Mouse interactions (Hover-first paradigm)
+      card.addEventListener('mouseenter', () => {
+        if (!isUserEngaged) {
+          stopAutoPlay();
+          setActiveCard(index);
+        }
+      });
+
+      card.addEventListener('mouseleave', () => {
+        if (!isUserEngaged) {
+          activeIndex = index;
+          startAutoPlay();
+        }
+      });
+
+      // Click / Tap interactions (Locks the state)
+      card.addEventListener('click', () => {
+        setActiveCard(index, true);
+      });
+
+      // Keyboard accessibility
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          setActiveCard(index, true);
+        }
+      });
+    });
+
+    // Initialize block
+    // Small delay to let animations settle before starting
+    setTimeout(startAutoPlay, 500);
+
+  })();
+</script>
+
+
+
+<div style="height:96px" aria-hidden="true"></div>
+<div class="slide-nav">
+  <a href="slide-02.html" class="nav-btn" title="Previous"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></a>
+  <span class="nav-label">3 / 9</span>
+  <a href="slide-04.html" class="nav-btn" title="Next"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
+</div>
+
+</body></html>

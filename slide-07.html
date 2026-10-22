@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Turing Evaluation Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+    /* --- 1. BRAND VARIABLES & RESET --- */
+    :root {
+        /* BRAND COLORS FROM PALETTE */
+        --bg-app: #000000;       /* Brand Black */
+        --bg-panel: #262626;     /* Brand Dark Grey 1 */
+        --border: #454545;       /* Brand Dark Grey 2 */
+        
+        --accent: #317EFF;       /* Brand Blue (Primary Accent) */
+        --accent-dark: #2137B4;  /* Brand Dark Blue (Hover states) */
+        --accent-light: #A8CCF8; /* Brand Light Blue (Subtle highlights) */
+        
+        --text-main: #FFFFFF;    /* Brand White */
+        --text-muted: #A3A3A8;   /* Brand Mid Grey */
+        
+        /* SEMANTIC COLORS (UX Standards) */
+        --danger: #e74c3c;       /* Red for Fail */
+        --success: #2e8b57;      /* Green for Pass */
+        
+        /* FONT UPDATED TO POPPINS */
+        --font-ui: 'Poppins', sans-serif;
+        --font-code: 'Consolas', 'Monaco', 'Courier New', monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        padding: 2px 20px;
+        font-family: var(--font-ui);
+        color: var(--text-main);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column; /* Stack header and widget */
+        justify-content: flex-start;
+        align-items: center;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* --- NEW HEADER STYLES --- */
+    .header-container {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+     h1 {
+            font-size: 2.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+    .subtitle {
+        font-size: 18px;
+        color: var(--text-muted);
+        font-weight: 400;
+    }
+
+    /* --- 2. MAIN WIDGET CONTAINER --- */
+    .sim-widget {
+        display: flex;
+        width: 100%;
+        max-width: 1200px;
+        min-height: 600px; 
+        background-color: var(--bg-app); /* Brand Black */
+        border-radius: 12px;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+        border: 1px solid var(--border);
+        position: relative; 
+        overflow: hidden;
+    }
+
+    /* Mobile / Small Screen Stacking */
+    @media (max-width: 900px) {
+        .sim-widget { 
+            flex-direction: column; 
+        }
+        .col-left {
+            max-height: 350px; 
+        }
+    }
+
+    /* --- 3. LEFT COLUMN: CONTEXT --- */
+    .col-left {
+        flex: 4; 
+        background-color: var(--bg-panel); /* Brand Dark Grey 1 */
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .panel-header {
+        padding: 20px 25px;
+        border-bottom: 1px solid var(--border);
+        background-color: var(--bg-app); /* Darker header */
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--accent); /* Brand Blue */
+    }
+
+    .scroll-container {
+        padding: 25px;
+        overflow-y: auto;
+        flex-grow: 1;
+        max-height: 650px; 
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) var(--bg-panel);
+    }
+
+    /* Scrollbar styling for Webkit */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-panel); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        display: block;
+        letter-spacing: 0.5px;
+    }
+
+    .instruction-card {
+        background: linear-gradient(180deg, rgba(49, 126, 255, 0.1) 0%, rgba(0,0,0,0) 100%);
+        border: 1px solid var(--accent); /* Brand Blue Border */
+        border-radius: 6px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    .instruction-text {
+        font-size: 15px;
+        line-height: 1.6;
+        color: var(--text-main);
+    }
+
+    .rubric-container { display: flex; flex-direction: column; gap: 12px; }
+
+    .rubric-item {
+        background-color: #1a1a1a; /* Slightly darker than panel */
+        border-left: 4px solid var(--border);
+        padding: 15px;
+        border-radius: 4px;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+    
+    .rubric-item:hover { 
+        background-color: #000; 
+        border-color: var(--border);
+    }
+
+    .rubric-head { font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 4px; }
+    .rubric-body { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+
+
+    /* --- 4. RIGHT COLUMN: EVIDENCE --- */
+    .col-right {
+        flex: 6; 
+        display: flex;
+        flex-direction: column;
+        background-color: var(--bg-app); /* Brand Black */
+        position: relative;
+    }
+
+    .editor-tabs {
+        height: 45px;
+        background-color: var(--bg-app);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        padding-left: 10px;
+    }
+    .tab {
+        height: 100%;
+        background-color: var(--bg-panel);
+        color: var(--text-main);
+        padding: 0 25px;
+        display: flex;
+        align-items: center;
+        font-size: 13px;
+        border-top: 2px solid var(--accent); /* Brand Blue Top Border */
+        border-right: 1px solid var(--border);
+        font-weight: 600;
+    }
+
+    .code-view {
+        flex-grow: 1;
+        padding: 25px;
+        font-family: var(--font-code);
+        font-size: 15px;
+        line-height: 1.6;
+        color: var(--text-main);
+        min-height: 300px;
+    }
+
+    /* Syntax Highlighting (Adjusted for high contrast on black) */
+    .k { color: var(--accent); font-weight: bold; } /* Keywords -> Brand Blue */
+    .f { color: #dcdcaa; }
+    .c { color: var(--text-muted); font-style: italic; }
+    .s { color: #ce9178; }
+    .n { color: #b5cea8; }
+
+    /* Footer Controls */
+    .footer-controls {
+        padding: 25px 30px;
+        background-color: var(--bg-panel);
+        border-top: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        z-index: 5;
+    }
+
+    .prompt-text { font-size: 14px; color: var(--text-main); font-weight: 600; }
+
+    .btn-row { display: flex; gap: 20px; }
+
+    .btn {
+        flex: 1;
+        padding: 15px;
+        border: none;
+        border-radius: 6px;
+        font-family: var(--font-ui);
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.2s;
+    }
+
+    .btn-fail {
+        background: transparent;
+        border: 2px solid var(--danger);
+        color: var(--danger);
+    }
+    .btn-fail:hover { background: var(--danger); color: white; transform: translateY(-2px); }
+
+    .btn-pass {
+        background: transparent;
+        border: 2px solid var(--success);
+        color: var(--success);
+    }
+    .btn-pass:hover { background: var(--success); color: white; transform: translateY(-2px); }
+
+
+    /* --- 5. OVERLAYS (Feedback) --- */
+    .overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: rgba(0, 0, 0, 0.96); /* Deep Black Overlay */
+        z-index: 50;
+        display: flex; 
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 40px;
+        opacity: 0;
+        pointer-events: none; 
+        transition: opacity 0.3s ease;
+        border-radius: 12px;
+    }
+    
+    .overlay.active {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .feedback-icon { font-size: 50px; margin-bottom: 20px; }
+    .feedback-title { font-size: 24px; font-weight: 800; margin-bottom: 15px; color: var(--text-main); }
+    .feedback-desc { font-size: 16px; color: var(--text-muted); line-height: 1.6; max-width: 480px; margin-bottom: 30px; }
+
+    .btn-reset {
+        background-color: var(--border);
+        color: var(--text-main);
+        border: 1px solid var(--text-muted);
+        padding: 12px 30px;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-reset:hover { 
+        background-color: var(--text-main); 
+        color: var(--bg-app); 
+        border-color: var(--text-main);
+    }
+
+</style>
+<style>
+/* ===== SLIDE NAV ===== */
+.slide-nav{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;z-index:9999;font-family:'Poppins',system-ui,sans-serif}
+.slide-nav .nav-btn{display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:14px;background:#111;color:#fff;text-decoration:none;transition:all .2s ease;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.slide-nav .nav-btn:hover{background:#333;transform:scale(1.06)}
+.slide-nav .nav-btn svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.slide-nav .nav-disabled{opacity:.25;pointer-events:none}
+.slide-nav .nav-label{font-size:13px;font-weight:500;color:#5f6368;background:rgba(255,255,255,.9);backdrop-filter:blur(10px);padding:8px 14px;border-radius:999px;border:1px solid rgba(0,0,0,.06);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+
+</style>
+</head>
+<body>
+
+<div class="header-container">
+    <h1>Where you Evaluate</h1>
+    <div class="subtitle">You'll use a tool to evaluate, the exact tool may vary by project.</div>
+</div>
+
+<div class="sim-widget">
+  
+  
+    
+    <div class="col-left">
+        <div class="panel-header">
+            <span>📋 Evaluation Context</span>
+        </div>
+        
+        <div class="scroll-container">
+            <span class="label">1. The Instruction</span>
+            <div class="instruction-card">
+                <div class="instruction-text">
+                    "Write a Python function named <code>calculate_squares</code> that takes a list of integers and returns a list of their squares. <br><br>
+                    <strong>Constraint:</strong> You must use a standard <code>for</code> loop. Do <strong>NOT</strong> use list comprehensions."
+                </div>
+            </div>
+
+            <span class="label">2. The Rubric</span>
+            <div class="rubric-container">
+                <div class="rubric-item">
+                    <div class="rubric-head">Functionality</div>
+                    <div class="rubric-body">The code runs without syntax errors and produces the correct mathematical output.</div>
+                </div>
+
+                <div class="rubric-item">
+                    <div class="rubric-head">Instruction Adherence</div>
+                    <div class="rubric-body">The model MUST follow all negative constraints (e.g., "Do Not use X"). Ignoring a constraint is a critical failure.</div>
+                </div>
+
+                <div class="rubric-item">
+                    <div class="rubric-head">Formatting</div>
+                    <div class="rubric-body">Variable names should be descriptive (snake_case). Indentation must be correct.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-right">
+        <div class="editor-tabs">
+            <div class="tab">solution.py</div>
+        </div>
+
+        <div class="code-view">
+            <div class="line"><span class="c"># Model Output ID: 9942</span></div>
+            <div class="line"><span class="c"># Looks like clean, efficient Python code...</span></div>
+            <div class="line"> </div>
+            <div class="line"><span class="k">def</span> <span class="f">calculate_squares</span>(numbers):</div>
+            <div class="line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="c">"""Returns a list of squares."""</span></div>
+            <div class="line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="k">not</span> numbers:</div>
+            <div class="line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">return</span> []</div>
+            <div class="line">&nbsp;&nbsp;&nbsp;&nbsp;</div>
+            <div class="line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="c"># Using list comprehension for better performance</span></div>
+            <div class="line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">return</span> [n**2 <span class="k">for</span> n <span class="k">in</span> numbers]</div>
+        </div>
+
+        <div class="footer-controls">
+            <span class="prompt-text">Based on the Instruction and Rubric, what is your decision?</span>
+            <div class="btn-row">
+                <button class="btn btn-fail" onclick="makeDecision('FAIL')">✗ Fail Response</button>
+                <button class="btn btn-pass" onclick="makeDecision('PASS')">✓ Pass Response</button>
+            </div>
+        </div>
+
+        <div id="overlay-correct" class="overlay">
+            <div class="feedback-icon">✅</div>
+            <div class="feedback-title" style="color: var(--success)">Correct Evaluation</div>
+            <div class="feedback-desc">
+                Excellent catch. <br><br>
+                Even though the code is valid and "Pythonic," the model ignored the <strong>Negative Constraint</strong> ("Do NOT use list comprehensions").
+                <br><br>
+                In this role, instructions are law. Good code that breaks the rules is a Fail.
+            </div>
+            <button class="btn-reset" onclick="resetAll()">Review Again</button>
+        </div>
+
+        <div id="overlay-wrong" class="overlay">
+            <div class="feedback-icon">⛔</div>
+            <div class="feedback-title" style="color: var(--danger)">Incorrect Evaluation</div>
+            <div class="feedback-desc">
+                You passed this response, likely because the code works and looks clean.
+                <br><br>
+                <strong>However, look at the Instruction again.</strong><br>
+                It explicitly said: "Do NOT use list comprehensions."
+                <br><br>
+                The AI failed to follow instructions. Therefore, you must fail the response.
+            </div>
+            <button class="btn-reset" onclick="resetAll()">Try Again</button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function makeDecision(decisionType) {
+        if (decisionType === 'FAIL') {
+            document.getElementById('overlay-correct').classList.add('active');
+        } else {
+            document.getElementById('overlay-wrong').classList.add('active');
+        }
+    }
+
+    function resetAll() {
+        document.getElementById('overlay-correct').classList.remove('active');
+        document.getElementById('overlay-wrong').classList.remove('active');
+    }
+</script>
+
+
+
+<div style="height:96px" aria-hidden="true"></div>
+<div class="slide-nav">
+  <a href="slide-06.html" class="nav-btn" title="Previous"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></a>
+  <span class="nav-label">7 / 9</span>
+  <a href="slide-08.html" class="nav-btn" title="Next"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
+</div>
+
+</body></html>

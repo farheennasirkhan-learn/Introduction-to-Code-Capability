@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<title>How You Evaluate and Are Evaluated</title>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --turing-blue: #317eff;
+            --card-white: #ffffff;
+            --card-blue: #f0f6ff;
+            --text-main: #1a1a1a;
+            --text-sub: #555555;
+            --border-light: rgba(49, 126, 255, 0.15);
+            --glow-color: rgba(49, 126, 255, 0.6);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Toggle Switch Styling */
+        .toggle-wrapper {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 50px;
+        }
+
+        .toggle-container {
+            display: flex;
+            background: #e2e8f0;
+            padding: 4px;
+            border-radius: 50px;
+            cursor: pointer;
+            position: relative;
+            width: 140px;
+            user-select: none;
+        }
+
+        .toggle-option {
+            flex: 1;
+            padding: 10px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+            transition: color 0.3s;
+            color: #64748b;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            width: calc(50% - 4px);
+            height: calc(100% - 8px);
+            background: var(--card-white);
+            border-radius: 50px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 1;
+        }
+
+        .active-toggle .toggle-slider { transform: translateX(0); }
+        .active-toggle.teacher-active .toggle-slider { transform: translateX(100%); }
+        .active-toggle .opt-student { color: var(--turing-blue); }
+        .active-toggle.teacher-active .opt-teacher { color: var(--turing-blue); }
+        .active-toggle.teacher-active .opt-student { color: #64748b; }
+
+        /* Card Layout */
+        .container {
+            max-width: 1150px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        /* Premium Glow Effect Wrapper */
+        .card-container {
+            position: relative;
+            border-radius: 28px;
+            padding: 2px; /* Border thickness */
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden; /* Clips the rotating glow */
+            background: transparent;
+        }
+
+        /* The Animated Gradient Border */
+        .card-container.active::before,
+        .card-container:hover::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(
+                transparent, 
+                var(--turing-blue), 
+                transparent 30%
+            );
+            animation: rotateGlow 4s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes rotateGlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .eval-card {
+            background-color: var(--card-white);
+            border-radius: 26px;
+            padding: 40px;
+            height: 100%;
+            box-sizing: border-box;
+            border: 1px solid var(--border-light);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
+        }
+
+        /* Inactive State */
+        .card-container:not(.active) {
+            opacity: 0.5;
+            filter: grayscale(0.5);
+            transform: scale(0.98);
+        }
+
+        /* Hover/Active State Transitions */
+        .card-container:hover, .card-container.active {
+            transform: scale(1.02) translateY(-5px);
+            opacity: 1 !important;
+            filter: grayscale(0);
+            z-index: 10;
+        }
+        
+        .card-container.active .eval-card,
+        .card-container:hover .eval-card {
+            box-shadow: 0 20px 40px -15px rgba(49, 126, 255, 0.2);
+        }
+
+        /* Typography */
+        h2 { font-size: 28px; margin: 0; color: var(--text-main); }
+        .subtext { font-size: 18px; color: var(--turing-blue); margin-bottom: 25px; display: block; font-weight: 500; }
+        h3 { font-size: 14px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-sub); margin-top: 30px; margin-bottom: 15px; }
+        .list-group { list-style: none; padding: 0; margin: 0; }
+        .list-group li { font-size: 17px; margin-bottom: 14px; line-height: 1.5; padding-left: 35px; position: relative; color: var(--text-main); }
+
+        /* Icons */
+        .check li::before { content: "✓"; position: absolute; left: 0; color: #2ecc71; font-weight: bold; }
+        .no-eval li::before { content: "○"; position: absolute; left: 0; color: #e74c3c; font-weight: bold; }
+        .bullet-blue li::before { content: "•"; position: absolute; left: 0; color: var(--turing-blue); font-size: 24px; top: -4px; }
+
+        .stinger-box { margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--border-light); }
+        .stinger-text { font-size: 18px; font-weight: 600; color: var(--turing-blue); line-height: 1.4; }
+
+        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
+    </style>
+<style>
+/* ===== SLIDE NAV ===== */
+.slide-nav{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;z-index:9999;font-family:'Poppins',system-ui,sans-serif}
+.slide-nav .nav-btn{display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:14px;background:#111;color:#fff;text-decoration:none;transition:all .2s ease;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.slide-nav .nav-btn:hover{background:#333;transform:scale(1.06)}
+.slide-nav .nav-btn svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.slide-nav .nav-disabled{opacity:.25;pointer-events:none}
+.slide-nav .nav-label{font-size:13px;font-weight:500;color:#5f6368;background:rgba(255,255,255,.9);backdrop-filter:blur(10px);padding:8px 14px;border-radius:999px;border:1px solid rgba(0,0,0,.06);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+
+</style>
+</head>
+<body>
+
+    <div class="toggle-wrapper">
+        <div class="toggle-container active-toggle" id="toggle-ui">
+            <div class="toggle-slider"></div>
+            <div class="toggle-option opt-student">
+                <span class="material-icons">school</span>
+            </div>
+            <div class="toggle-option opt-teacher">
+                <span class="material-icons">co_present</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card-container active" id="student-card">
+            <div class="eval-card">
+                <h2>How you evaluate</h2>
+                <span class="subtext">(The student)</span>
+                
+                <h3>Check For:</h3>
+                <ul class="list-group check">
+                    <li>Did the code do what was asked?</li>
+                    <li>Did it follow all instructions?</li>
+                    <li>Did it meet the rubric’s requirements?</li>
+                </ul>
+
+                <h3>Do Not Evaluate Based On:</h3>
+                <ul class="list-group no-eval">
+                    <li>How you would have written it</li>
+                    <li>Whether it looks elegant</li>
+                    <li>Whether it “almost” works</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card-container" id="teacher-card">
+            <div class="eval-card" style="background-color: var(--card-blue);">
+                <h2>How you are evaluated</h2>
+                <span class="subtext">(As the teacher)</span>
+                
+                <h3>Your work is reviewed for:</h3>
+                <ul class="list-group bullet-blue">
+                    <li>Accuracy of pass/fail decisions</li>
+                    <li>Alignment with the rubric</li>
+                    <li>Consistency across similar cases</li>
+                    <li>Clarity of explanations</li>
+                </ul>
+
+                <div class="stinger-box">
+                    <div class="stinger-text">
+                        Strong evaluators are consistent and easy to agree with.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const toggle = document.getElementById('toggle-ui');
+        const sCard = document.getElementById('student-card');
+        const tCard = document.getElementById('teacher-card');
+
+        function setView(view) {
+            if(view === 'student') {
+                toggle.classList.remove('teacher-active');
+                sCard.classList.add('active');
+                tCard.classList.remove('active');
+            } else {
+                toggle.classList.add('teacher-active');
+                tCard.classList.add('active');
+                sCard.classList.remove('active');
+            }
+        }
+
+        toggle.addEventListener('click', () => {
+            const isTeacher = toggle.classList.contains('teacher-active');
+            setView(isTeacher ? 'student' : 'teacher');
+        });
+
+        sCard.addEventListener('mouseenter', () => setView('student'));
+        tCard.addEventListener('mouseenter', () => setView('teacher'));
+    </script>
+
+
+<div style="height:96px" aria-hidden="true"></div>
+<div class="slide-nav">
+  <a href="slide-05.html" class="nav-btn" title="Previous"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></a>
+  <span class="nav-label">6 / 9</span>
+  <a href="slide-07.html" class="nav-btn" title="Next"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
+</div>
+
+</body></html>
